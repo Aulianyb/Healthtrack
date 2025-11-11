@@ -10,6 +10,7 @@ const port = 3000;
 var data : {[day: string] : dailyLogs} = {
 }
 
+// POST /water-logs
 app.post('/water-logs', (req, res) =>{
     const {amount, note} = req.body
     var apiResponse : Response<waterIntake>
@@ -50,9 +51,15 @@ app.post('/water-logs', (req, res) =>{
         }
         res.status(200)
     } catch (error){
+        var errorMessage : string; 
+        if (error instanceof Error){
+            errorMessage = error.message
+        } else {
+            errorMessage = "An unknown error has occured"
+        }
         apiResponse = {
             status : "error",
-            message : "error message here",
+            message : errorMessage,
             id : null,
             data : null
         }
@@ -61,6 +68,7 @@ app.post('/water-logs', (req, res) =>{
     res.send(apiResponse)
 })
 
+// GET /water-logs/today
 app.get('/water-logs/today', async(req, res) => {
     var apiResponse : Response<dailyLogs>
     try {
@@ -82,9 +90,15 @@ app.get('/water-logs/today', async(req, res) => {
         res.status(200)
 
     } catch (error){
+        var errorMessage : string; 
+        if (error instanceof Error){
+            errorMessage = error.message
+        } else {
+            errorMessage = "An unknown error has occured"
+        }
         apiResponse = {
             status : "error",
-            message : "error message here",
+            message : errorMessage,
             id : null,
             data : null
         }
@@ -93,6 +107,7 @@ app.get('/water-logs/today', async(req, res) => {
     res.send(apiResponse)
 })
 
+// GET /water-logs?date=YYYY-MM-DD
 app.get('/water-logs', async(req, res) => {
     var apiResponse : Response<logs>
     try {
@@ -113,10 +128,10 @@ app.get('/water-logs', async(req, res) => {
         }
 
         const currentDate = `${day}/${month}/${year}`
-        const selectedLogs : logs = data[currentDate].logs
-        if (!selectedDate){
+        if (!data[currentDate]){
             throw new Error("No water intake on " + currentDate)
         }
+        const selectedLogs : logs = data[currentDate].logs
         apiResponse = {
             status : "success",
             message : "succesfully returned summary",
@@ -125,9 +140,15 @@ app.get('/water-logs', async(req, res) => {
         }
         res.status(200)
     } catch (error){
+        var errorMessage : string; 
+        if (error instanceof Error){
+            errorMessage = error.message
+        } else {
+            errorMessage = "An unknown error has occured"
+        }
         apiResponse = {
             status : "error",
-            message : "error message here",
+            message : errorMessage,
             id : null,
             data : null
         }
@@ -136,50 +157,10 @@ app.get('/water-logs', async(req, res) => {
     res.send(apiResponse)
 })
 
+// POST /daily-goal
 app.post('/daily-goal', (req, res) =>{
     const {newDailyGoal} = req.body
-    var apiResponse : Response<number>
-    try {
-        if (!newDailyGoal){
-            throw new Error("New daily goal is not provided!")
-        }
-
-        const currentTimestamp = new Date()
-        const month   = currentTimestamp.getUTCMonth() + 1;
-        const day     = currentTimestamp.getUTCDate();
-        const year    = currentTimestamp.getUTCFullYear();
-        const currentDate = `${day}/${month}/${year}`
-
-        var dailyGoal = 2000;
-        var note : string = "No water intake log today. returning default value."
-        
-        if (data[currentDate]){
-            dailyGoal = data[currentDate].dailyGoal
-            note = "Returned daily goal"
-        }
-
-        apiResponse = {
-            status : "success",
-            message : note,
-            id : currentDate,
-            data : dailyGoal
-        }
-        res.status(200)
-    } catch (error){
-        apiResponse = {
-            status : "error",
-            message : "error message here",
-            id : null,
-            data : null
-        }
-        res.status(400)
-    }
-    res.send(apiResponse)
-})
-
-app.post('/daily-goal', (req, res) =>{
-    const {newDailyGoal} = req.body
-    var apiResponse : Response<number>
+    var apiResponse : Response<dailyLogs>
     try {
         if (!newDailyGoal){
             throw new Error("New daily goal is not provided!")
@@ -199,18 +180,24 @@ app.post('/daily-goal', (req, res) =>{
                 logs : {}
             }
         }
-        const dailyGoal = data[currentDate].dailyGoal
+       data[currentDate].dailyGoal = newDailyGoal
         apiResponse = {
             status : "success",
-            message : "returned daily goal",
+            message : "changed daily goal",
             id : currentDate,
-            data : dailyGoal
+            data : data[currentDate]
         }
         res.status(200)
     } catch (error){
+        var errorMessage : string; 
+        if (error instanceof Error){
+            errorMessage = error.message
+        } else {
+            errorMessage = "An unknown error has occured"
+        }
         apiResponse = {
             status : "error",
-            message : "error message here",
+            message : errorMessage,
             id : null,
             data : null
         }
@@ -219,6 +206,7 @@ app.post('/daily-goal', (req, res) =>{
     res.send(apiResponse)
 })
 
+// GET /daily-goal
 app.get('/daily-goal', (req, res) =>{
     var apiResponse : Response<number>
     try {
@@ -245,9 +233,15 @@ app.get('/daily-goal', (req, res) =>{
         }
         res.status(200)
     } catch (error){
+        var errorMessage : string; 
+        if (error instanceof Error){
+            errorMessage = error.message
+        } else {
+            errorMessage = "An unknown error has occured"
+        }
         apiResponse = {
             status : "error",
-            message : "error message here",
+            message : errorMessage,
             id : null,
             data : null
         }

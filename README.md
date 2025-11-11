@@ -1,6 +1,4 @@
-<p align="center">
-  🫗 Healthtrack
-</p>
+# 🫗 Healthtrack
 Water Intake Tracking API
 
 ## ⚙️ DEPENDENCIES NEEDED

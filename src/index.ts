@@ -250,6 +250,7 @@ app.get('/daily-goal', (req, res) =>{
     res.send(apiResponse)
 })
 
+// Port testing
 app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`)
+  console.log(`API listening on port ${port}`)
 })

@@ -17,5 +17,7 @@ export type logs = {
 
 export type dailyLogs = {
     dailyGoal : number,
+    totalAmount : number,
+    progressPercentage : number,
     logs : logs
 }

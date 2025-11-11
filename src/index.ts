@@ -1,5 +1,5 @@
 import express from 'express'
-import { Response, waterIntake, dailyLogs} from './models/models';
+import { Response, waterIntake, dailyLogs, logs} from './models/models';
 import { v4 as uuid } from 'uuid';
 
 const app = express()
@@ -10,13 +10,11 @@ const port = 3000;
 var data : {[day: string] : dailyLogs} = {
 }
 
-
-
 app.post('/water-logs', (req, res) =>{
     const {amount, note} = req.body
     var apiResponse : Response<waterIntake>
     try {
-        if (amount == null){
+        if (!amount){
             throw new Error("Water amount is not provided!")
         }
         const id : string = uuid(); 
@@ -24,7 +22,7 @@ app.post('/water-logs', (req, res) =>{
         const month   = currentTimestamp.getUTCMonth() + 1;
         const day     = currentTimestamp.getUTCDate();
         const year    = currentTimestamp.getUTCFullYear();
-        const currentDate = `${year}/${month}/${day}`
+        const currentDate = `${day}/${month}/${year}`
 
         const newWaterIntake : waterIntake = {
             amount : amount,
@@ -35,10 +33,14 @@ app.post('/water-logs', (req, res) =>{
         if (!data[currentDate]){
             data[currentDate] = {
                 dailyGoal : 2000,
+                totalAmount : 0,
+                progressPercentage : 0,
                 logs : {}
             }
         }
         data[currentDate].logs[id] = newWaterIntake;
+        data[currentDate].totalAmount += amount;
+        data[currentDate].progressPercentage = (data[currentDate].totalAmount / data[currentDate].dailyGoal) * 100
         console.log(data); 
         apiResponse = {
             status : "success",
@@ -46,6 +48,7 @@ app.post('/water-logs', (req, res) =>{
             id : id,
             data : newWaterIntake
         }
+        res.status(200)
     } catch (error){
         apiResponse = {
             status : "error",
@@ -58,7 +61,200 @@ app.post('/water-logs', (req, res) =>{
     res.send(apiResponse)
 })
 
-app.get('/water-logs/today')
+app.get('/water-logs/today', async(req, res) => {
+    var apiResponse : Response<dailyLogs>
+    try {
+        const currentTimestamp = new Date()
+        const month   = currentTimestamp.getUTCMonth() + 1;
+        const day     = currentTimestamp.getUTCDate();
+        const year    = currentTimestamp.getUTCFullYear();
+        const currentDate = `${day}/${month}/${year}`
+        const summary : dailyLogs = data[currentDate]
+        if (!summary){
+            throw new Error("No water intake log today")
+        }
+        apiResponse = {
+            status : "success",
+            message : "succesfully returned summary",
+            id : currentDate,
+            data : summary
+        }
+        res.status(200)
+
+    } catch (error){
+        apiResponse = {
+            status : "error",
+            message : "error message here",
+            id : null,
+            data : null
+        }
+        res.status(400)
+    }
+    res.send(apiResponse)
+})
+
+app.get('/water-logs', async(req, res) => {
+    var apiResponse : Response<logs>
+    try {
+        const { date } = req.query; 
+        const selectedDate = date as string
+        const year = selectedDate.slice(0, 4);
+        var month : string; 
+        if (selectedDate[5] == "0") {
+            month = selectedDate.slice(6, 7);
+        } else{
+            month = selectedDate.slice(5, 7);
+        }
+        var day : string; 
+        if (selectedDate[8] == "0") {
+            day = selectedDate.slice(9, 10);
+        } else{
+            day = selectedDate.slice(8, 10);
+        }
+
+        const currentDate = `${day}/${month}/${year}`
+        const selectedLogs : logs = data[currentDate].logs
+        if (!selectedDate){
+            throw new Error("No water intake on " + currentDate)
+        }
+        apiResponse = {
+            status : "success",
+            message : "succesfully returned summary",
+            id : currentDate,
+            data : selectedLogs
+        }
+        res.status(200)
+    } catch (error){
+        apiResponse = {
+            status : "error",
+            message : "error message here",
+            id : null,
+            data : null
+        }
+        res.status(400)
+    }
+    res.send(apiResponse)
+})
+
+app.post('/daily-goal', (req, res) =>{
+    const {newDailyGoal} = req.body
+    var apiResponse : Response<number>
+    try {
+        if (!newDailyGoal){
+            throw new Error("New daily goal is not provided!")
+        }
+
+        const currentTimestamp = new Date()
+        const month   = currentTimestamp.getUTCMonth() + 1;
+        const day     = currentTimestamp.getUTCDate();
+        const year    = currentTimestamp.getUTCFullYear();
+        const currentDate = `${day}/${month}/${year}`
+
+        var dailyGoal = 2000;
+        var note : string = "No water intake log today. returning default value."
+        
+        if (data[currentDate]){
+            dailyGoal = data[currentDate].dailyGoal
+            note = "Returned daily goal"
+        }
+
+        apiResponse = {
+            status : "success",
+            message : note,
+            id : currentDate,
+            data : dailyGoal
+        }
+        res.status(200)
+    } catch (error){
+        apiResponse = {
+            status : "error",
+            message : "error message here",
+            id : null,
+            data : null
+        }
+        res.status(400)
+    }
+    res.send(apiResponse)
+})
+
+app.post('/daily-goal', (req, res) =>{
+    const {newDailyGoal} = req.body
+    var apiResponse : Response<number>
+    try {
+        if (!newDailyGoal){
+            throw new Error("New daily goal is not provided!")
+        }
+
+        const currentTimestamp = new Date()
+        const month   = currentTimestamp.getUTCMonth() + 1;
+        const day     = currentTimestamp.getUTCDate();
+        const year    = currentTimestamp.getUTCFullYear();
+        const currentDate = `${day}/${month}/${year}`
+
+        if (!data[currentDate]){
+            data[currentDate] = {
+                dailyGoal : 2000,
+                totalAmount : 0,
+                progressPercentage : 0,
+                logs : {}
+            }
+        }
+        const dailyGoal = data[currentDate].dailyGoal
+        apiResponse = {
+            status : "success",
+            message : "returned daily goal",
+            id : currentDate,
+            data : dailyGoal
+        }
+        res.status(200)
+    } catch (error){
+        apiResponse = {
+            status : "error",
+            message : "error message here",
+            id : null,
+            data : null
+        }
+        res.status(400)
+    }
+    res.send(apiResponse)
+})
+
+app.get('/daily-goal', (req, res) =>{
+    var apiResponse : Response<number>
+    try {
+        const currentTimestamp = new Date()
+        const month   = currentTimestamp.getUTCMonth() + 1;
+        const day     = currentTimestamp.getUTCDate();
+        const year    = currentTimestamp.getUTCFullYear();
+        const currentDate = `${day}/${month}/${year}`
+
+        if (!data[currentDate]){
+            data[currentDate] = {
+                dailyGoal : 2000,
+                totalAmount : 0,
+                progressPercentage : 0,
+                logs : {}
+            }
+        }
+        const dailyGoal = data[currentDate].dailyGoal
+        apiResponse = {
+            status : "success",
+            message : "returned daily goal",
+            id : currentDate,
+            data : dailyGoal
+        }
+        res.status(200)
+    } catch (error){
+        apiResponse = {
+            status : "error",
+            message : "error message here",
+            id : null,
+            data : null
+        }
+        res.status(400)
+    }
+    res.send(apiResponse)
+})
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)

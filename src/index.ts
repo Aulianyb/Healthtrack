@@ -45,7 +45,7 @@ app.post('/water-logs', (req, res) =>{
         console.log(data); 
         apiResponse = {
             status : "success",
-            message : "water intake succesfully logged!",
+            message : "water intake successfully logged!",
             id : id,
             data : newWaterIntake
         }
@@ -83,7 +83,7 @@ app.get('/water-logs/today', async(req, res) => {
         }
         apiResponse = {
             status : "success",
-            message : "succesfully returned summary",
+            message : "successfully returned summary",
             id : currentDate,
             data : summary
         }
@@ -134,7 +134,7 @@ app.get('/water-logs', async(req, res) => {
         const selectedLogs : logs = data[currentDate].logs
         apiResponse = {
             status : "success",
-            message : "succesfully returned summary",
+            message : "successfully returned summary",
             id : currentDate,
             data : selectedLogs
         }
